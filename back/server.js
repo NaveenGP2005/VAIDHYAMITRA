@@ -7,7 +7,25 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+
+// CORS Configuration
+const allowedOrigins = [
+  "http://localhost:5173", // For local testing
+  "https://5173-idx-testinggit-1742906567576.cluster-mwrgkbggpvbq6tvtviraw2knqg.cloudworkstations.dev", // Your frontend URL
+];
+
+app.use(
+  cors({
+    origin:
+      "https://5173-idx-testinggit-1742906567576.cluster-mwrgkbggpvbq6tvtviraw2knqg.cloudworkstations.dev",
+    credentials: true,
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: "Content-Type, Authorization",
+  })
+);
+
+// Explicitly handle preflight (OPTIONS) requests
+app.options("*", cors());
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -15,6 +33,9 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 app.post("/api/chatbot", async (req, res) => {
   try {
     const userMessage = req.body.message;
+    if (!userMessage) {
+      return res.status(400).json({ error: "Message is required." });
+    }
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
@@ -31,7 +52,9 @@ app.post("/api/chatbot", async (req, res) => {
       ],
     });
 
-    const botReply = result.response.candidates[0].content.parts[0].text;
+    const botReply =
+      result.response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "I'm unable to process your request.";
 
     res.json({ reply: botReply });
   } catch (error) {

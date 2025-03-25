@@ -1,0 +1,74 @@
+{
+  "nutrition_dataset": [
+    {
+      "nutrient": "Vitamin C",
+      "food_groups": [
+        {
+          "category": "Green leafy vegetables",
+          "foods": [
+            { "name": "Agathi", "content_mg_per_100g": 120 },
+            { "name": "Cabbage", "content_mg_per_100g": 220 },
+            { "name": "Coriander leaves", "content_mg_per_100g": 150 },
+            { "name": "Drumstick leaves", "content_mg_per_100g": 180 }
+          ]
+        },
+        {
+          "category": "Other vegetables",
+          "foods": [
+            { "name": "Giant chillies (Capsicum)", "content_mg_per_100g": 137 },
+            { "name": "Green chillies", "content_mg_per_100g": 117 }
+          ]
+        },
+        {
+          "category": "Fruits",
+          "foods": [
+            { "name": "Amla", "content_mg_per_100g": 600 },
+            { "name": "Guava", "content_mg_per_100g": 212 }
+          ]
+        }
+      ]
+    },
+    {
+      "nutrient": "Calcium",
+      "food_groups": [
+        {
+          "category": "Cereals and Legumes",
+          "foods": [
+            { "name": "Ragi", "content_mg_per_100g": 340 },
+            { "name": "Bengal gram (whole)", "content_mg_per_100g": 200 },
+            { "name": "Rajmah", "content_mg_per_100g": 250 }
+          ]
+        },
+        {
+          "category": "Green leafy vegetables",
+          "foods": [
+            { "name": "Amaranth", "content_mg_per_100g": 500 },
+            { "name": "Curry leaves", "content_mg_per_100g": 700 },
+            { "name": "Knol-khol leaves", "content_mg_per_100g": 800 }
+          ]
+        },
+        {
+          "category": "Milk and Milk Products",
+          "foods": [
+            { "name": "Buffalo's milk", "content_mg_per_100g": 120 },
+            { "name": "Cow's milk", "content_mg_per_100g": 130 },
+            { "name": "Cheese", "content_mg_per_100g": 1370 }
+          ]
+        }
+      ]
+    },
+    {
+      "nutrient": "Iron",
+      "food_groups": [
+        {
+          "category": "Green leafy vegetables",
+          "foods": [
+            { "name": "Amaranth", "content_mg_per_100g": 40 },
+            { "name": "Cauliflower greens", "content_mg_per_100g": 30 },
+            { "name": "Radish leaves", "content_mg_per_100g": 25 }
+          ]
+        }
+      ]
+    }
+  ]
+}

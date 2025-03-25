@@ -16,8 +16,12 @@ import {
   BookOpen,
   Mic,
   MicOff,
+  Phone,
+  Apple,
+  Leaf,
 } from "lucide-react";
 import axios from "axios";
+import nutritionData from "./nutrition.json";
 
 function App() {
   const [messages, setMessages] = useState([
@@ -28,7 +32,6 @@ function App() {
     },
   ]);
   const [inputMessage, setInputMessage] = useState("");
-
   const [selectedSymptom, setSelectedSymptom] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isRecording, setIsRecording] = useState(false);
@@ -39,6 +42,7 @@ function App() {
   });
   const [activeTab, setActiveTab] = useState("chat");
   const [selectedCategory, setSelectedCategory] = useState("A");
+  const [selectedNutrient, setSelectedNutrient] = useState(null);
   const recognition = useRef(null);
 
   const medicalRecords = [
@@ -112,7 +116,7 @@ function App() {
       {
         name: "Blood transfusion",
         details:
-          "The process of transferring blood into a person’s circulation.",
+          "The process of transferring blood into a person's circulation.",
       },
     ],
     C: [
@@ -143,7 +147,6 @@ function App() {
     window.addEventListener("online", handleOnlineStatus);
     window.addEventListener("offline", handleOnlineStatus);
 
-    // Initialize speech recognition
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -204,12 +207,17 @@ function App() {
     setInputMessage("");
 
     try {
-      const response = await axios.post("http://localhost:5000/api/chatbot", {
-        message: messageText,
-      });
+      const response = await axios.post(
+        "https://5000-idx-testinggit-1742906567576.cluster-mwrgkbggpvbq6tvtviraw2knqg.cloudworkstations.dev/api/chatbot",
+        { message: messageText },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
 
       const aiResponse = {
-        text: response.data.reply,
+        text: response.data.reply || "No response from AI",
         sender: "assistant",
         timestamp: new Date(),
       };
@@ -217,13 +225,81 @@ function App() {
       setMessages((prev) => [...prev, aiResponse]);
     } catch (error) {
       console.error("Error getting response:", error);
+
       const errorResponse = {
         text: "I'm sorry, I'm having trouble connecting to the server. Please try again later.",
         sender: "assistant",
         timestamp: new Date(),
       };
+
       setMessages((prev) => [...prev, errorResponse]);
     }
+  };
+
+  const renderNutritionInfo = () => {
+    if (!selectedNutrient) {
+      return (
+        <div className="grid grid-cols-1 gap-4">
+          {nutritionData.nutrition_dataset.map((nutrient) => (
+            <div
+              key={nutrient.nutrient}
+              onClick={() => setSelectedNutrient(nutrient)}
+              className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer"
+            >
+              <div className="flex items-center space-x-3">
+                {nutrient.nutrient === "Vitamin C" ? (
+                  <Apple className="h-6 w-6 text-green-500" />
+                ) : nutrient.nutrient === "Calcium" ? (
+                  <Activity className="h-6 w-6 text-blue-500" />
+                ) : (
+                  <Leaf className="h-6 w-6 text-red-500" />
+                )}
+                <h3 className="text-lg font-semibold">{nutrient.nutrient}</h3>
+              </div>
+              <p className="mt-2 text-sm text-gray-600">
+                Click to see food sources rich in {nutrient.nutrient}
+              </p>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={() => setSelectedNutrient(null)}
+          className="mb-4 flex items-center space-x-2 text-blue-600 hover:text-blue-700"
+        >
+          <span>← Back to nutrients</span>
+        </button>
+
+        <h2 className="text-2xl font-bold mb-4">
+          Foods Rich in {selectedNutrient.nutrient}
+        </h2>
+
+        {selectedNutrient.food_groups.map((group) => (
+          <div key={group.category} className="space-y-3">
+            <h3 className="text-lg font-semibold text-gray-700">
+              {group.category}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {group.foods.map((food) => (
+                <div
+                  key={food.name}
+                  className="p-3 bg-gray-50 rounded-lg flex justify-between items-center"
+                >
+                  <span>{food.name}</span>
+                  <span className="font-semibold text-blue-600">
+                    {food.content_mg_per_100g} mg/100g
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -260,7 +336,7 @@ function App() {
               </h2>
             </div>
             <div className="flex items-center space-x-4">
-              {isOnline ? (
+              {true ? (
                 <div className="flex items-center space-x-2 text-green-600">
                   <Wifi className="h-5 w-5" />
                   <span className="text-sm font-medium">Online Mode</span>
@@ -271,6 +347,15 @@ function App() {
                   <span className="text-sm font-medium">Offline Mode</span>
                 </div>
               )}
+
+              <a
+                href="tel:112"
+                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 hover:bg-red-700 transition"
+              >
+                <Phone className="h-5 w-5" />
+                <span>Emergency</span>
+              </a>
+
               <Menu className="h-6 w-6 text-gray-600 cursor-pointer" />
             </div>
           </div>
@@ -307,6 +392,19 @@ function App() {
                   <div className="flex items-center space-x-2">
                     <BookOpen className="h-5 w-5" />
                     <span>Common Symptoms</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab("nutrition")}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    activeTab === "nutrition"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <Apple className="h-5 w-5" />
+                    <span>Nutrition</span>
                   </div>
                 </button>
               </div>
@@ -373,58 +471,60 @@ function App() {
                   </div>
                 </form>
               </>
+            ) : activeTab === "symptoms" ? (
+              <div className="flex-1 overflow-y-auto p-4">
+                {!selectedSymptom ? (
+                  <>
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      {Object.keys(commonSymptoms).map((category) => (
+                        <button
+                          key={category}
+                          onClick={() => setSelectedCategory(category)}
+                          className={`p-3 rounded-lg transition-colors ${
+                            selectedCategory === category
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+
+                    {selectedCategory && (
+                      <div className="space-y-2">
+                        {commonSymptoms[selectedCategory].map(
+                          (symptom, index) => (
+                            <div
+                              key={index}
+                              onClick={() => setSelectedSymptom(symptom)}
+                              className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                            >
+                              {symptom.name}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div>
+                    <button
+                      onClick={() => setSelectedSymptom(null)}
+                      className="mb-4 p-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                    >
+                      ← Back
+                    </button>
+                    <h2 className="text-xl font-semibold">
+                      {selectedSymptom.name}
+                    </h2>
+                    <p className="mt-2">{selectedSymptom.details}</p>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="flex-1 overflow-y-auto p-4">
-                <div className="flex-1 overflow-y-auto p-4">
-                  {!selectedSymptom ? (
-                    <>
-                      <div className="grid grid-cols-3 gap-4 mb-6">
-                        {Object.keys(commonSymptoms).map((category) => (
-                          <button
-                            key={category}
-                            onClick={() => setSelectedCategory(category)}
-                            className={`p-3 rounded-lg transition-colors ${
-                              selectedCategory === category
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                            }`}
-                          >
-                            {category}
-                          </button>
-                        ))}
-                      </div>
-
-                      {selectedCategory && (
-                        <div className="space-y-2">
-                          {commonSymptoms[selectedCategory].map(
-                            (symptom, index) => (
-                              <div
-                                key={index}
-                                onClick={() => setSelectedSymptom(symptom)}
-                                className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                              >
-                                {symptom.name}
-                              </div>
-                            )
-                          )}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div>
-                      <button
-                        onClick={() => setSelectedSymptom(null)}
-                        className="mb-4 p-2 bg-gray-200 rounded-lg hover:bg-gray-300"
-                      >
-                        ← Back
-                      </button>
-                      <h2 className="text-xl font-semibold">
-                        {selectedSymptom.name}
-                      </h2>
-                      <p className="mt-2">{selectedSymptom.details}</p>
-                    </div>
-                  )}
-                </div>
+                {renderNutritionInfo()}
               </div>
             )}
           </div>
