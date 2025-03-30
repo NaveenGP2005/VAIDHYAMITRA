@@ -12,6 +12,7 @@ app.use(express.json());
 const allowedOrigins = [
   "http://localhost:5173", // For local testing
   "https://5173-idx-testinggit-1742906567576.cluster-mwrgkbggpvbq6tvtviraw2knqg.cloudworkstations.dev", // Your frontend URL
+  "https://vaidhyamitra-front.onrender.com"
 ];
 
 app.use(
