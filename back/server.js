@@ -16,8 +16,13 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin:
-      "https://5173-idx-testinggit-1742906567576.cluster-mwrgkbggpvbq6tvtviraw2knqg.cloudworkstations.dev",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: "GET,POST,PUT,DELETE,OPTIONS",
     allowedHeaders: "Content-Type, Authorization",

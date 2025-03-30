@@ -207,8 +207,13 @@ function App() {
     setInputMessage("");
 
     try {
+      const baseURL =
+        window.location.hostname === "localhost"
+          ? "http://localhost:5000"
+          : "https://vaidhyamitra-backend.onrender.com";
+
       const response = await axios.post(
-        "https://5000-idx-testinggit-1742906567576.cluster-mwrgkbggpvbq6tvtviraw2knqg.cloudworkstations.dev/api/chatbot",
+        `${baseURL}/api/chatbot`,
         { message: messageText },
         {
           headers: { "Content-Type": "application/json" },
