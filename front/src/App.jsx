@@ -208,7 +208,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        "https://5000-idx-testinggit-1742906567576.cluster-mwrgkbggpvbq6tvtviraw2knqg.cloudworkstations.dev/api/chatbot",
+        "https://vaidhyamitra-backend.onrender.com",
         { message: messageText },
         {
           headers: { "Content-Type": "application/json" },
