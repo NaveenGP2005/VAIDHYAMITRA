@@ -213,7 +213,7 @@ function App() {
           : "https://vaidhyamitra-backend.onrender.com";
 
       const response = await axios.post(
-        `${baseURL}/api/chatbot`,
+        "https://5000-idx-testinggit-1742906567576.cluster-mwrgkbggpvbq6tvtviraw2knqg.cloudworkstations.dev/api/chatbot",
         { message: messageText },
         {
           headers: { "Content-Type": "application/json" },
