@@ -19,9 +19,12 @@ import {
   Phone,
   Apple,
   Leaf,
+  UploadCloud,
 } from "lucide-react";
 import axios from "axios";
 import nutritionData from "./nutrition.json";
+const apiKey = import.meta.env.VITE_PINATA_API_KEY;
+const secretKey = import.meta.env.VITE_PINATA_SECRET_API_KEY;
 
 function App() {
   const [messages, setMessages] = useState([
@@ -45,32 +48,52 @@ function App() {
   const [selectedNutrient, setSelectedNutrient] = useState(null);
   const recognition = useRef(null);
 
-  const medicalRecords = [
-    {
-      id: "1",
-      name: "Blood Test Results.pdf",
-      date: "2025-03-15",
-      type: "PDF",
-      size: "2.3 MB",
-      status: "synced",
-    },
-    {
-      id: "2",
-      name: "Vaccination Record.pdf",
-      date: "2025-03-10",
-      type: "PDF",
-      size: "1.1 MB",
-      status: "synced",
-    },
-    {
-      id: "3",
-      name: "X-Ray Report.jpg",
-      date: "2025-03-05",
-      type: "Image",
-      size: "5.2 MB",
-      status: "pending",
-    },
-  ];
+  const [file, setFile] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  
+  useEffect(() => {
+    const storedFiles = localStorage.getItem("uploadedFiles");
+    if (storedFiles) {
+      setUploadedFiles(JSON.parse(storedFiles));
+    }
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) return alert("Please select a file");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await axios.post(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        formData,
+        {
+          headers: {
+            pinata_api_key: import.meta.env.VITE_PINATA_API_KEY,
+            pinata_secret_api_key: import.meta.env.VITE_PINATA_SECRET_API_KEY,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const fileUrl = `https://gateway.pinata.cloud/ipfs/${res.data.IpfsHash}`;
+      const uploadedFile = { name: file.name, url: fileUrl };
+
+      setUploadedFiles((prev) => {
+        const updated = [...prev, uploadedFile];
+        localStorage.setItem("uploadedFiles", JSON.stringify(updated));
+        return updated;
+      });
+
+      setFile(null);
+      alert("File uploaded successfully!");
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Failed to upload");
+    }
+  };
 
   const commonSymptoms = {
     A: [
@@ -565,50 +588,58 @@ function App() {
             </div>
 
             {/* Medical Records */}
-            <div className="bg-white rounded-xl shadow-md p-6 vitals-card">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <h2 className="text-lg font-semibold">Medical Records</h2>
-                </div>
-                <button className="bg-blue-600 text-white rounded-lg px-3 py-2 text-sm flex items-center space-x-1">
-                  <Upload className="h-4 w-4" />
-                  <span>Upload</span>
-                </button>
+            <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-10">
+              <div className="flex items-center space-x-2 mb-4">
+                <FileText className="h-6 w-6 text-blue-600" />
+                <h2 className="text-xl font-semibold">
+                  Medical Records Upload
+                </h2>
               </div>
 
-              <div className="space-y-3">
-                {medicalRecords.map((record) => (
-                  <div
-                    key={record.id}
-                    className="p-3 bg-gray-50 rounded-lg flex items-center justify-between"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-900">{record.name}</p>
-                      <p className="text-sm text-gray-500">
-                        {record.date} • {record.size}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {record.status === "pending" && (
-                        <span className="text-amber-600 text-sm flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          Pending Sync
-                        </span>
-                      )}
-                      <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
-                        <FolderOpen className="h-4 w-4 text-gray-600" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-blue-300 rounded-lg p-6 hover:bg-blue-50 cursor-pointer transition duration-200">
+                  <UploadCloud className="h-8 w-8 text-blue-500 mb-2" />
+                  <span className="text-gray-700">
+                    {file ? file.name : "Click to select a file"}
+                  </span>
+                  <input
+                    type="file"
+                    onChange={(e) => setFile(e.target.files[0])}
+                    className="hidden"
+                  />
+                </label>
 
-              <div className="mt-4">
-                <button className="w-full bg-gray-100 text-gray-700 rounded-lg px-4 py-2 hover:bg-gray-200 transition-colors font-medium flex items-center justify-center space-x-2">
-                  <Search className="h-4 w-4" />
-                  <span>Search Records</span>
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+                >
+                  Upload to IPFS
                 </button>
+              </form>
+
+              <div className="mt-6">
+                <h3 className="font-semibold text-lg mb-2">
+                  📁 Uploaded Files
+                </h3>
+                {uploadedFiles.length === 0 ? (
+                  <p className="text-gray-500">No files uploaded yet.</p>
+                ) : (
+                  <ul className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                    {uploadedFiles.map((file, index) => (
+                      <li key={index} className="flex items-center space-x-2">
+                        <FileText className="h-4 w-4 text-gray-500" />
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-600 hover:underline break-all"
+                        >
+                          {file.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           </div>
